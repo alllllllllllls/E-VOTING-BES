@@ -202,16 +202,16 @@
         const votersTable = document.getElementById('votersTable');
 
         // State
-        let currentUser = null;
+        let currentUser  = null;
         let selectedCandidateId = null;
         
         // Check if localStorage has saved credentials (simulating session)
-        if (localStorage.getItem('currentUser')) {
-            currentUser = JSON.parse(localStorage.getItem('currentUser'));
-            if (currentUser.username === 'admin') {
+        if (localStorage.getItem('currentUser ')) {
+            currentUser  = JSON.parse(localStorage.getItem('currentUser '));
+            if (currentUser .username === 'admin') {
                 showAdminDashboard();
             } else {
-                const student = database.students.find(s => s.username === currentUser.username);
+                const student = database.students.find(s => s.username === currentUser .username);
                 if (student && student.hasVoted) {
                     showAlreadyVoted(student);
                 } else {
@@ -238,8 +238,8 @@
             
             // Check admin login
             if (username === database.admin.username && password === database.admin.password) {
-                currentUser = { username: 'admin', isAdmin: true };
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                currentUser  = { username: 'admin', isAdmin: true };
+                localStorage.setItem('currentUser ', JSON.stringify(currentUser ));
                 loginModal.classList.add('hidden');
                 showAdminDashboard();
                 return;
@@ -251,8 +251,8 @@
             );
             
             if (student) {
-                currentUser = { username: student.username, name: student.name, nis: student.nis };
-                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                currentUser  = { username: student.username, name: student.name, nis: student.nis };
+                localStorage.setItem('currentUser ', JSON.stringify(currentUser ));
                 loginModal.classList.add('hidden');
                 
                 if (student.hasVoted) {
@@ -338,83 +338,4 @@
                                         ${candidate.mission.map(m => `<li>${m}</li>`).join('')}
                                     </ul>
                                 </div>
-                                <button data-candidate-id="${candidate.id}" class="vote-btn mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md transition duration-200">
-                                    PILIH
-                                </button>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            
-            document.querySelectorAll('.vote-btn').forEach(btn => {
-                btn.addEventListener('click', () => {
-                    selectedCandidateId = parseInt(btn.dataset.candidateId);
-                    const candidate = database.candidates.find(c => c.id === selectedCandidateId);
-                    selectedCandidateName.textContent = candidate.name;
-                    confirmModal.classList.remove('hidden');
-                });
-            });
-        }
-
-        function submitVote() {
-            // In a real app, this would be an API call to the server
-            const now = new Date().toLocaleString();
-            const studentIndex = database.students.findIndex(s => s.username === currentUser.username);
-            
-            if (studentIndex !== -1) {
-                database.students[studentIndex].hasVoted = true;
-                database.students[studentIndex].votedFor = selectedCandidateId;
-                database.students[studentIndex].voteTime = now;
-                
-                // Update candidate votes count
-                const candidateIndex = database.candidates.findIndex(c => c.id === selectedCandidateId);
-                if (candidateIndex !== -1) {
-                    database.candidates[candidateIndex].votes += 1;
-                }
-            }
-            
-            confirmModal.classList.add('hidden');
-            showAlreadyVoted(database.students[studentIndex]);
-        }
-
-        function renderAdminDashboard() {
-            // Render results chart (simplified for this example)
-            document.getElementById('resultChart').innerHTML = `
-                <div class="bg-indigo-50 p-4 rounded-lg">
-                    <h3 class="text-lg font-semibold mb-4">Hasil Sementara Pemilihan</h3>
-                    ${database.candidates.map(candidate => `
-                        <div class="mb-3">
-                            <div class="flex justify-between mb-1">
-                                <span>${candidate.name}</span>
-                                <span>${candidate.votes} suara</span>
-                            </div>
-                            <div class="w-full bg-gray-200 rounded-full h-4">
-                                <div class="bg-indigo-600 h-4 rounded-full" style="width: ${(candidate.votes / Math.max(1, database.students.reduce((sum, s) => sum + (s.hasVoted ? 1 : 0), 0)) * 100)}%"></div>
-                            </div>
-                        </div>
-                    `).join('')}
-                </div>
-            `;
-            
-            // Render voters table
-            votersTable.innerHTML = database.getVotersList().map(voter => `
-                <tr>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${voter.nis}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${voter.name}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${voter.voteTime}</td>
-                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${voter.candidateName}</td>
-                </tr>
-            `).join('') || `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Belum ada siswa yang memilih</td></tr>`;
-        }
-
-        function logout() {
-            currentUser = null;
-            localStorage.removeItem('currentUser');
-            adminDashboard.classList.add('hidden');
-            votingInterface.classList.add('hidden');
-            loginModal.classList.remove('hidden');
-        }
-    </script>
-</body>
-</html>
+                                <button data-candidate-id="${candidate.id}" class="vote-btn mt-6 w-full
