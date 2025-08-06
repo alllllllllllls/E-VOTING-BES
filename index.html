@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Voting Sekolah | SMK Besku</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background-color: #f8fafc;
+        }
+        .login-container {
+            background: linear-gradient(135deg, #4361ee 0%, #3a0ca3 100%);
+        }
+        .candidate-card {
+            transition: all 0.3s ease;
+        }
+        .candidate-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+        }
+        .voting-ended {
+            background: linear-gradient(135deg, #f72585 0%, #b5179e 100%);
+        }
+    </style>
+</head>
+<body>
+    <!-- Login Modal -->
+    <div id="loginModal" class="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div class="login-container p-8 rounded-lg w-full max-w-md text-white">
+            <div class="text-center mb-8">
+                <h2 class="text-2xl font-bold">E-Voting SMK Besku</h2>
+                <p class="text-blue-200">Masuk menggunakan akun siswa</p>
+            </div>
+            <form id="loginForm" class="space-y-4">
+                <div>
+                    <label for="username" class="block text-sm font-medium text-blue-100">Username</label>
+                    <input type="text" id="username" name="username" class="mt-1 p-3 w-full rounded-md bg-blue-900 bg-opacity-50 text-white border border-blue-700 focus:ring-2 focus:ring-blue-500" placeholder="NIS atau username" required>
+                </div>
+                <div>
+                    <label for="password" class="block text-sm font-medium text-blue-100">Password</label>
+                    <input type="password" id="password" name="password" class="mt-1 p-3 w-full rounded-md bg-blue-900 bg-opacity-50 text-white border border-blue-700 focus:ring-2 focus:ring-blue-500" placeholder="Password" required>
+                </div>
+                <button type="submit" class="w-full bg-white text-blue-800 font-bold py-3 px-4 rounded-md hover:bg-blue-100 transition duration-200">Masuk</button>
+            </form>
+            <div class="mt-4 text-center text-blue-200 text-sm">
+                <p>Masalah login? Hubungi admin sekolah</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard (Hidden by default) -->
+    <div id="adminDashboard" class="hidden min-h-screen">
+        <nav class="bg-indigo-800 text-white p-4 shadow-md">
+            <div class="container mx-auto flex justify-between items-center">
+                <h1 class="text-xl font-bold">Admin Dashboard</h1>
+                <button id="logoutBtn" class="bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-md transition duration-200">Logout</button>
+            </div>
+        </nav>
+
+        <div class="container mx-auto p-4">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Hasil Pemilihan</h2>
+                <div id="resultChart" class="h-64"></div>
+                
+                <div class="mt-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Results will be populated here by JavaScript -->
+                </div>
+            </div>
+
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold text-gray-800 mb-4">Daftar Siswa yang Sudah Memilih</h2>
+                <div class="overflow-x-auto">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">NIS</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Nama</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Waktu Memilih</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kandidat Dipilih</th>
+                            </tr>
+                        </thead>
+                        <tbody id="votersTable" class="bg-white divide-y divide-gray-200">
+                            <!-- Voters list will be populated here by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Voting Interface (Hidden by default) -->
+    <div id="votingInterface" class="hidden min-h-screen">
+        <nav class="bg-indigo-700 text-white p-4 shadow-md">
+            <div class="container mx-auto flex justify-between items-center">
+                <h1 class="text-xl font-bold">E-Voting Ketua OSIS SMK Besku</h1>
+                <button id="userLogoutBtn" class="bg-white text-indigo-700 hover:bg-indigo-100 py-2 px-4 rounded-md transition duration-200">Logout</button>
+            </div>
+        </nav>
+
+        <div id="votingContainer" class="container mx-auto p-4">
+            <!-- Voting content will be populated here by JavaScript -->
+        </div>
+
+        <!-- Footer -->
+        <footer class="bg-gray-800 text-white p-4 text-center">
+            <p>© 2023 E-Voting SMK Besku. Hak Cipta Dilindungi.</p>
+        </footer>
+    </div>
+
+    <!-- Voting Confirmation Modal -->
+    <div id="confirmModal" class="hidden fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
+        <div class="bg-white p-6 rounded-lg w-full max-w-md">
+            <div class="text-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">Konfirmasi Pilihan</h3>
+                <p class="text-gray-600">Anda akan memilih <span id="selectedCandidateName" class="font-bold">[Nama Kandidat]</span></p>
+            </div>
+            <div class="flex justify-center space-x-4">
+                <button id="cancelVote" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-4 rounded-md transition duration-200">Batal</button>
+                <button id="confirmVote" class="bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-md transition duration-200">Konfirmasi</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Database simulation (in a real app, this would be server-side with MySQL)
+        const database = {
+            // Admin credentials
+            admin: {
+                username: 'admin',
+                password: 'admin123'
+            },
+            
+            // Sample students
+            students: [
+                { nis: '2023001', username: 'siswa1', password: 'password1', name: 'Ali Pratama', hasVoted: false, votedFor: null, voteTime: null },
+                { nis: '2023002', username: 'siswa2', password: 'password2', name: 'Budi Setiawan', hasVoted: false, votedFor: null, voteTime: null },
+                { nis: '2023003', username: 'siswa3', password: 'password3', name: 'Citra Dewi', hasVoted: false, votedFor: null, voteTime: null },
+            ],
+            
+            // Candidates
+            candidates: [
+                { 
+                    id: 1, 
+                    name: 'M. Rizky Firmansyah', 
+                    image: 'https://placehold.co/400x400',
+                    alt: "Portrait of M. Rizky Firmansyah, a confident high school student with glasses wearing a crisp white shirt and school tie, standing against a blue background",
+                    vision: 'Mewujudkan sekolah yang inovatif dan berkarakter',
+                    mission: [
+                        'Meningkatkan kualitas kegiatan ekstrakurikuler',
+                        'Menjadi jembatan antara siswa dan pihak sekolah',
+                        'Menciptakan lingkungan sekolah yang kreatif dan produktif'
+                    ],
+                    votes: 0 
+                },
+                { 
+                    id: 2, 
+                    name: 'Siti Aminah Putri', 
+                    image: 'https://placehold.co/400x400',
+                    alt: "Portrait of Siti Aminah Putri, a smiling female high school student with hijab, dressed in school uniform with red accents",
+                    vision: 'Sekolah unggul dengan nilai-nilai kebersamaan dan prestasi',
+                    mission: [
+                        'Meningkatkan program penghargaan untuk prestasi siswa',
+                        'Memperkuat program kesejahteraan siswa',
+                        'Mendorong partisipasi aktif dalam kompetisi akademik'
+                    ],
+                    votes: 0 
+                }
+            ],
+            
+            // Voting status
+            votingOpen: true,
+            
+            // Get all voters who have voted
+            getVotersList: function() {
+                return this.students.filter(student => student.hasVoted).map(student => {
+                    const candidate = student.votedFor ? this.candidates.find(c => c.id === student.votedFor) : null;
+                    return {
+                        nis: student.nis,
+                        name: student.name,
+                        voteTime: student.voteTime,
+                        candidateName: candidate ? candidate.name : '-'
+                    };
+                });
+            }
+        };
+
+        // DOM Elements
+        const loginModal = document.getElementById('loginModal');
+        const loginForm = document.getElementById('loginForm');
+        const adminDashboard = document.getElementById('adminDashboard');
+        const votingInterface = document.getElementById('votingInterface');
+        const votingContainer = document.getElementById('votingContainer');
+        const confirmModal = document.getElementById('confirmModal');
+        const selectedCandidateName = document.getElementById('selectedCandidateName');
+        const cancelVote = document.getElementById('cancelVote');
+        const confirmVote = document.getElementById('confirmVote');
+        const logoutBtn = document.getElementById('logoutBtn');
+        const userLogoutBtn = document.getElementById('userLogoutBtn');
+        const votersTable = document.getElementById('votersTable');
+
+        // State
+        let currentUser = null;
+        let selectedCandidateId = null;
+        
+        // Check if localStorage has saved credentials (simulating session)
+        if (localStorage.getItem('currentUser')) {
+            currentUser = JSON.parse(localStorage.getItem('currentUser'));
+            if (currentUser.username === 'admin') {
+                showAdminDashboard();
+            } else {
+                const student = database.students.find(s => s.username === currentUser.username);
+                if (student && student.hasVoted) {
+                    showAlreadyVoted(student);
+                } else {
+                    showVotingInterface();
+                }
+            }
+        } else {
+            loginModal.classList.remove('hidden');
+        }
+
+        // Event Listeners
+        loginForm.addEventListener('submit', handleLogin);
+        cancelVote.addEventListener('click', () => confirmModal.classList.add('hidden'));
+        confirmVote.addEventListener('click', submitVote);
+        logoutBtn.addEventListener('click', logout);
+        userLogoutBtn.addEventListener('click', logout);
+
+        // Functions
+        function handleLogin(e) {
+            e.preventDefault();
+            
+            const username = document.getElementById('username').value.trim();
+            const password = document.getElementById('password').value;
+            
+            // Check admin login
+            if (username === database.admin.username && password === database.admin.password) {
+                currentUser = { username: 'admin', isAdmin: true };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                loginModal.classList.add('hidden');
+                showAdminDashboard();
+                return;
+            }
+            
+            // Check student login
+            const student = database.students.find(s => 
+                (s.username === username || s.nis === username) && s.password === password
+            );
+            
+            if (student) {
+                currentUser = { username: student.username, name: student.name, nis: student.nis };
+                localStorage.setItem('currentUser', JSON.stringify(currentUser));
+                loginModal.classList.add('hidden');
+                
+                if (student.hasVoted) {
+                    showAlreadyVoted(student);
+                } else {
+                    showVotingInterface();
+                }
+            } else {
+                alert('Username atau password salah!');
+            }
+        }
+
+        function showAdminDashboard() {
+            adminDashboard.classList.remove('hidden');
+            renderAdminDashboard();
+        }
+
+        function showVotingInterface() {
+            votingInterface.classList.remove('hidden');
+            renderVotingPage();
+        }
+
+        function showAlreadyVoted(student) {
+            const candidate = database.candidates.find(c => c.id === student.votedFor);
+            
+            votingContainer.innerHTML = `
+                <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-4xl my-10">
+                    <div class="md:flex">
+                        <div class="md:shrink-0 flex items-center justify-center bg-indigo-100 md:w-48">
+                            <img src="https://placehold.co/200" alt="Thank you for voting illustration showing a checkmark in a ballot box" class="h-48 w-full object-cover md:h-full md:w-48">
+                        </div>
+                        <div class="p-8">
+                            <h1 class="block mt-1 text-2xl font-bold text-indigo-800">Terima kasih telah memilih!</h1>
+                            <p class="mt-2 text-gray-600">Anda telah menggunakan hak pilih Anda dan memilih <span class="font-bold">${candidate ? candidate.name : 'Unknown'}</span>.</p>
+                            <p class="mt-2 text-gray-600">Hasil akhir akan diumumkan setelah pemilihan ditutup.</p>
+                            <button id="backToLogin" class="mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md transition duration-200">
+                                Kembali ke Login
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.getElementById('backToLogin').addEventListener('click', () => {
+                logout();
+                loginModal.classList.remove('hidden');
+            });
+        }
+
+        function renderVotingPage() {
+            if (!database.votingOpen) {
+                votingContainer.innerHTML = `
+                    <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-md overflow-hidden md:max-w-4xl my-10">
+                        <div class="p-8 voting-ended text-center text-white">
+                            <h1 class="block mt-1 text-2xl font-bold">Pemilihan Telah Ditutup</h1>
+                            <p class="mt-2">Masa pemilihan ketua OSIS telah berakhir. Hasil akan segera diumumkan.</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+            
+            votingContainer.innerHTML = `
+                <div class="text-center my-8">
+                    <h2 class="text-3xl font-bold text-indigo-800">PEMILIHAN KETUA OSIS</h2>
+                    <p class="text-gray-600 mt-2">Pilih salah satu kandidat di bawah ini</p>
+                    <p class="text-red-500 text-sm mt-2">PERHATIAN: Anda hanya dapat memilih satu kali!</p>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
+                    ${database.candidates.map(candidate => `
+                        <div class="candidate-card bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg">
+                            <img src="${candidate.image}" alt="${candidate.alt}" class="w-full h-64 object-cover">
+                            <div class="p-6">
+                                <h3 class="text-xl font-bold text-gray-800">${candidate.name}</h3>
+                                <div class="mt-2">
+                                    <h4 class="font-semibold text-indigo-600">Visi:</h4>
+                                    <p class="text-gray-600">${candidate.vision}</p>
+                                </div>
+                                <div class="mt-3">
+                                    <h4 class="font-semibold text-indigo-600">Misi:</h4>
+                                    <ul class="list-disc list-inside text-gray-600 space-y-1">
+                                        ${candidate.mission.map(m => `<li>${m}</li>`).join('')}
+                                    </ul>
+                                </div>
+                                <button data-candidate-id="${candidate.id}" class="vote-btn mt-6 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-md transition duration-200">
+                                    PILIH
+                                </button>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            document.querySelectorAll('.vote-btn').forEach(btn => {
+                btn.addEventListener('click', () => {
+                    selectedCandidateId = parseInt(btn.dataset.candidateId);
+                    const candidate = database.candidates.find(c => c.id === selectedCandidateId);
+                    selectedCandidateName.textContent = candidate.name;
+                    confirmModal.classList.remove('hidden');
+                });
+            });
+        }
+
+        function submitVote() {
+            // In a real app, this would be an API call to the server
+            const now = new Date().toLocaleString();
+            const studentIndex = database.students.findIndex(s => s.username === currentUser.username);
+            
+            if (studentIndex !== -1) {
+                database.students[studentIndex].hasVoted = true;
+                database.students[studentIndex].votedFor = selectedCandidateId;
+                database.students[studentIndex].voteTime = now;
+                
+                // Update candidate votes count
+                const candidateIndex = database.candidates.findIndex(c => c.id === selectedCandidateId);
+                if (candidateIndex !== -1) {
+                    database.candidates[candidateIndex].votes += 1;
+                }
+            }
+            
+            confirmModal.classList.add('hidden');
+            showAlreadyVoted(database.students[studentIndex]);
+        }
+
+        function renderAdminDashboard() {
+            // Render results chart (simplified for this example)
+            document.getElementById('resultChart').innerHTML = `
+                <div class="bg-indigo-50 p-4 rounded-lg">
+                    <h3 class="text-lg font-semibold mb-4">Hasil Sementara Pemilihan</h3>
+                    ${database.candidates.map(candidate => `
+                        <div class="mb-3">
+                            <div class="flex justify-between mb-1">
+                                <span>${candidate.name}</span>
+                                <span>${candidate.votes} suara</span>
+                            </div>
+                            <div class="w-full bg-gray-200 rounded-full h-4">
+                                <div class="bg-indigo-600 h-4 rounded-full" style="width: ${(candidate.votes / Math.max(1, database.students.reduce((sum, s) => sum + (s.hasVoted ? 1 : 0), 0)) * 100)}%"></div>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            
+            // Render voters table
+            votersTable.innerHTML = database.getVotersList().map(voter => `
+                <tr>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${voter.nis}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${voter.name}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${voter.voteTime}</td>
+                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700">${voter.candidateName}</td>
+                </tr>
+            `).join('') || `<tr><td colspan="4" class="px-6 py-4 text-center text-sm text-gray-500">Belum ada siswa yang memilih</td></tr>`;
+        }
+
+        function logout() {
+            currentUser = null;
+            localStorage.removeItem('currentUser');
+            adminDashboard.classList.add('hidden');
+            votingInterface.classList.add('hidden');
+            loginModal.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
